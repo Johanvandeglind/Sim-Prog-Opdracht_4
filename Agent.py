@@ -1,17 +1,34 @@
-from random import random
+from random import randint, random
 
 from mesa import Model, Agent
 from mesa.space import SingleGrid
 from mesa.time import BaseScheduler
+from mesa.datacollection import DataCollector
 
+def compute_speed(model):
+    """
+    Compute the average speed of all cars.
+    """
+    cars = model.schedule.agents
+    total_speed = 0
+    for c in cars:
+        total_speed += c.get_speed()
+    avg_speed = total_speed / len(cars)
+    return avg_speed
 
 class CarModel(Model):
-    def __init__(self, height, width, brake_prob, car_amount):
+    
+    def __init__(self, height, width, brake_prob, car_amount, speeding_percentage, maximum_speeding):
         super().__init__()
+        self.maximum_speed = 5
         self.height = height
         self.width = width
         self.brake_prob = brake_prob
         self.car_amount = car_amount
+        self.agents = []
+
+        self.speeding_percentage = speeding_percentage
+        self.maximum_speeding = maximum_speeding
 
         self.schedule = BaseScheduler(self)
         self.grid = SingleGrid(height, width, torus=True)
@@ -20,24 +37,38 @@ class CarModel(Model):
 
         self.running = True
 
+        self.datacollector = DataCollector(
+            model_reporters={"Throughput": compute_speed})
+
     def place_agents(self):
+        speeding_amount = int(self.car_amount * self.speeding_percentage) / 100
         for i in range(self.car_amount):
             while True:
                 try:
+                    if i < speeding_amount:
+                        random_speeding = self.maximum_speed + randint(1, self.maximum_speeding)
+                        speeding_color = "#FF0000"
+                    else:
+                        random_speeding = self.maximum_speed
+                        speeding_color = None
+
+
                     r = random()
-                    agent = CarAgent((int(r*100), 5), self, 10)
+                    agent = CarAgent((int(r*100), 5), self, random_speeding, speeding_color)
+                    self.agents.append(agent)
                     self.grid.position_agent(agent, int(r*100), 5)
                     self.schedule.add(agent)
                     break
-                except Exception:
+                except Exception as e:
                     continue
 
     def step(self):
         self.schedule.step()
-
+        self.datacollector.collect(self)
 
 class CarAgent(Agent):
-    def __init__(self, pos, model: CarModel, max_speed):
+    color = None
+    def __init__(self, pos, model: CarModel, max_speed, color=None):
         """
         Create a new car agent.
         """
@@ -47,6 +78,9 @@ class CarAgent(Agent):
         self.pos = pos
         self.max_speed = max_speed
         self.speed = 1
+
+        if color:
+            self.color = color
 
     def step(self):
         """
@@ -69,11 +103,11 @@ class CarAgent(Agent):
 
         # Random brake
         if random() < self.model.brake_prob:
-            self.speed -= 1
+            if self.speed > 0:
+                self.speed -= 1
         
         # Move the agent
         self.move()
-        print(self.pos)
 
     def move(self):
         """
@@ -85,6 +119,5 @@ class CarAgent(Agent):
                                            (self.pos[0]+self.speed, self.pos[1]))
                                        )
 
-model = CarModel(100, 100, 0.1, 100)
-for x in range(100):
-    model.step()
+    def get_speed(self):
+        return self.speed

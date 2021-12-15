@@ -20,7 +20,7 @@ def car_draw(agent):
         agent.color = color
     return {"Shape": "rect", "w": 0.5,"h": 1, "Filled": "true", "Layer": f"Speed: {agent.speed}", "Color": agent.color, "stroke_color": "#00FF00"}
 
-canvas_element = CanvasGrid(car_draw, 1000, 10, 10000, 100)
+canvas_element = CanvasGrid(car_draw, 100, 10, 1000, 100)
 
 chart = ChartModule([{"Label": "Throughput", "Color": "#0000FF"}], data_collector_name='datacollector', canvas_width=1000, canvas_height=1000)
 

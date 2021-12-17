@@ -4,6 +4,8 @@ from mesa import Model, Agent
 from mesa.space import SingleGrid
 from mesa.time import BaseScheduler
 from mesa.datacollection import DataCollector
+from mesa import Model, Agent
+from mesa.batchrunner import BatchRunner
 
 def compute_speed(model):
     """

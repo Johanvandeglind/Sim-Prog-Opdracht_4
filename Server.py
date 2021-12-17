@@ -4,6 +4,7 @@ from mesa.visualization.modules import CanvasGrid, ChartModule, TextElement
 from mesa.visualization.UserParam import UserSettableParameter
 from mesa.visualization.modules import ChartModule
 from mesa.visualization.ModularVisualization import VisualizationElement
+from mesa.batchrunner import BatchRunner
 
 from mesa.visualization.TextVisualization import (
     TextData, TextGrid, TextVisualization
